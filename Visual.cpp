@@ -134,7 +134,7 @@ bool Visual::alterGame() {
     SDL_RenderFillRects(this->rend, rect, noLiving);
 
     SDL_RenderPresent(rend);
-    SDL_Delay(8000/100);
+    SDL_Delay(800/100);
   }
 
   return false;
