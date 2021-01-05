@@ -1,0 +1,65 @@
+#ifndef DATASTRUCTS_H
+#define DATASTRUCTS_H
+
+#include <iostream>
+#include <map>
+#include <vector>
+
+
+struct coor {
+  unsigned int rowPos;
+  unsigned int colPos;
+  bool operator< (const coor &other) const {
+    if (rowPos < other.rowPos) return true;
+    if (other.rowPos < rowPos) return false;
+    return colPos < other.colPos;
+  }
+  bool operator = (coor &other) {
+    rowPos = other.rowPos;
+    colPos = other.colPos;
+    return *this;
+  }
+  friend std::ostream& operator<< (std::ostream &os, const coor &c) {
+    os << '(' << c.rowPos << "," << c.colPos << ") ";  
+    return os;
+  }
+};
+
+
+struct node {
+  bool value;
+  unsigned int rowPos;
+  unsigned int colPos;
+  struct node *next;
+};
+
+
+class LinkedList {
+  private:
+    node *head, *tail;
+  public:
+    int size;
+    LinkedList() {
+      head = NULL;
+      tail = NULL;
+    }
+    ~LinkedList() {delete this;}
+
+    void add_node(int v, int x, int y) {
+      node *tmp = new node;
+      tmp-> value = v;
+      tmp-> rowPos = x;
+      tmp-> colPos = y;
+
+      if (head == NULL) {
+        head = tmp;
+        tail = tmp;
+      } else {
+        tail-> next = tmp;
+        tail = tail->next;
+      }
+      ++size;
+    }
+};
+
+#endif
