@@ -11,15 +11,15 @@ class Game {
   public:
     int height, width;
     const int size;
+    char entropicLiving;
     LinkedList *llist = new LinkedList();
     mymap sMatrix;
     std::vector<coor> aliveCoors;
-    Game (int y, int x); 
+    Game (int y, int x, char entropic); 
     ~Game() {delete llist;}
     void randomiseBoardLL();
     void randomiseBoardSM();
     std::vector<coor> neighbours(coor c);
-    mymap newLive();
     mymap currentLive();
     bool inField (int x, int y, int w, int h);
     std::vector<coor> mooreNieghbourhood(coor c, unsigned int width, unsigned int height) ;

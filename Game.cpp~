@@ -5,9 +5,10 @@
 #include <algorithm>
 
 
-Game::Game(int y, int x): size(x*y) {
+Game::Game(int y, int x, char entropic): size(x*y) {
       height = y;
       width = x;
+      entropicLiving = entropic;
 }
 
 
@@ -35,12 +36,16 @@ void Game::randomiseBoardLL() {
 
 
 void Game::randomiseBoardSM() {
-  int r = rand() %7000;
+  int r = rand() %9000;
   coor pos;
   for (int i = 0; i < r; ++i) {
     pos.rowPos = rand() % this-> width;
     pos.colPos = rand() % this-> height;
-    this->sMatrix[pos] = 1;
+    if (entropicLiving == 'n') {
+      this->sMatrix[pos] = 1;
+    } else {
+      this->sMatrix[pos] = rand() % 21 - 9;
+    }
     this->aliveCoors.push_back(pos);
   }
 }
@@ -59,47 +64,67 @@ std::vector<coor> Game::neighbours(coor c) {
 }
 
 
-// Look at sMatrix and find 'dead' cells that are now alive (have 3 neighbours)
-// This should be done in a way that the same sMatrix is used for newLive and currentLive, then merge the new matricies after a generational step to get next steps sMatrix
-mymap Game::newLive() {
-  mymap nextGen2;
-  coor pos;
-  
-
-
-  return nextGen2;
-}
-
-
 // Look at moore neighbourhood of each alive cell and choose whether it lives or not
 mymap Game::currentLive() {
   mymap nextGen;
   mymap noNeighs;
-  for (auto const &[key, val] : this->sMatrix) {
+
+  if (entropicLiving == 'n') {
+    for (auto const &[key, val] : this->sMatrix) {
     
-    if(noNeighs.find(key) == noNeighs.end()) {
-      noNeighs[key] = 0;
+      if(noNeighs.find(key) == noNeighs.end()) {
+        noNeighs[key] = 0;
+      }
+    
+      std::vector<coor> myNeighs = mooreNieghbourhood(key, this->width, this->height);
+      for (coor n : myNeighs) {
+        if(noNeighs.find(n) == noNeighs.end()) {
+          noNeighs[n] = 1;
+        } else {
+          noNeighs[n] += 1;
+        }
+      }
     }
+  
+    for (auto const &[key, val] : noNeighs) {
+    // Here we can add some sort of entropic destabalisation, instead of dying due to overcrowding (overcrowding assumes limited resources)
+      if (this->sMatrix.find(key) != this->sMatrix.end() && (val > 1 && val < 4)) {
+        nextGen[key] = 1;
+      }
+      if (this->sMatrix.find(key) == this->sMatrix.end() && val == 3) {
+        nextGen[key] = 1;
+      }
+    }
+  } else {
+    // After 13 cycles coordinates seem to be automatically removed from smatrix?? WHY?!
+    // It is because val increases exponentially, and not enough bits to encode it eventually
+    for (auto const &[key, val] : this->sMatrix) {
     
-    std::vector<coor> myNeighs = mooreNieghbourhood(key, this->width, this->height);
-    for (coor n : myNeighs) {
-      if(noNeighs.find(n) == noNeighs.end()) {
-        noNeighs[n] = 1;
-      } else {
-        noNeighs[n] += 1;
+      if(noNeighs.find(key) == noNeighs.end()) {
+        noNeighs[key] = val;
+      }
+    
+      std::vector<coor> myNeighs = mooreNieghbourhood(key, this->width, this->height);
+      for (coor n : myNeighs) {
+        if(noNeighs.find(n) == noNeighs.end()) {
+          noNeighs[n] = val;
+        } else {
+          noNeighs[n] += val;
+        }
+      }
+    }
+  
+    for (auto const &[key, val] : noNeighs) {
+      // Here we filter cells based on the added stability of its neighbours. If this is high enough it overcomes entropic destability. There is no 'too stable' individual
+      if (this->sMatrix.find(key) != this->sMatrix.end() && (val > 4)) {
+        nextGen[key] = val;
+      }
+      //Birth occurs when above entropic destability too
+      if (this->sMatrix.find(key) == this->sMatrix.end() && val > 15) {
+        nextGen[key] = rand() % 21 - 10;
       }
     }
   }
-  
-  for (auto const &[key, val] : noNeighs) {
-    if (this->sMatrix.find(key) != this->sMatrix.end() && (val == 2 or val == 3)) {
-      nextGen[key] = 1;
-    }
-    if (this->sMatrix.find(key) == this->sMatrix.end() && val == 3) {
-      nextGen[key] = 1;
-    }
-  }
-
     
 
     //int mooreN = neighbours(key).size();
@@ -114,7 +139,9 @@ mymap Game::currentLive() {
   //}
 
 
-  this->sMatrix = nextGen;
+  sMatrix = nextGen;
+  coor c = {0, 0}; 
+  std::cout << "(0,0)" << "has value of" << sMatrix.find(c)->second << std::endl;
   return nextGen;
 }
 

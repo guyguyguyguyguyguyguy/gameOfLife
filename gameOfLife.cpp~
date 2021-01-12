@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <ctime>
 #include <algorithm>
 #include "Game.h"
 #include "datastructs.h"
@@ -12,18 +13,25 @@
 
 
 int main() {
-  srand(0);
-  char randConfig;
+  srand(time(0));
+  char randConfig, entropic;
   Visual *a; 
   do {
     std::cout << "Random starting configuration? [y/n] \n";
     std::cin >> randConfig;
+    std::cout << "Entropic version? [y/n] \n";
+    std::cin >> entropic;
   } while (!std::cin.fail() && randConfig != 'y' && randConfig != 'n');
   
-  if (randConfig == 'y') {
-    *a = new Visual(true);
-  } else {
-    *a = new Visual(false);
+  switch (entropic) {
+    case 'y':
+      if (randConfig == 'y') {
+        a = new Visual(true, entropic);
+      } else {
+        a = new Visual(false, entropic);
+      }
+    case 'n':
+      
   }
   a->run();
   
